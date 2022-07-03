@@ -32,7 +32,7 @@ we created in the videos.
 
 What should be the start date for this dag?
 
-* 2019-01-01
+* 2019-01-01 :white_check_mark:
 * 2020-01-01
 * 2021-01-01
 * days_ago(1)
@@ -43,7 +43,7 @@ What should be the start date for this dag?
 How often do we need to run this DAG?
 
 * Daily
-* Monthly
+* Monthly :white_check_mark:
 * Yearly
 * Once
 
@@ -92,7 +92,7 @@ If you don't have a GCP account, for local ingestion you'll need two steps:
 
 Use the same frequency and the start date as for the yellow taxi dataset
 
-Question: how many DAG runs are green for data in 2019 after finishing everything? 
+Question: how many DAG runs are green for data in 2019 after finishing everything? 12
 
 Note: when processing the data for 2020-01 you probably will get an error. It's up 
 to you to decide what to do with it - for Week 3 homework we won't need 2020 data.
@@ -114,7 +114,7 @@ How often does it need to run?
 * Daily
 * Monthly
 * Yearly
-* Once
+* Once :white_check_mark:
 
 
 ## Submitting the solutions

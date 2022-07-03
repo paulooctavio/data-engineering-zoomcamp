@@ -97,7 +97,7 @@ def download_upload_to_gcs(
             task_id="local_to_gcs_task",
             python_callable=upload_to_gcs,
             op_kwargs={
-                "bucket": BUCKET,
+                "bucket": BUCKET,   
                 "object_name": gcs_path_template,
                 "local_file": f"{PATH_TO_LOCAL_HOME}/{parquet_file}",
             },
@@ -155,7 +155,6 @@ FHV_DATASET_FILE_TEMPLATE = "fhv_tripdata_{{ execution_date.strftime('%Y-%m') }}
 FHV_DATASET_URL_TEMPLATE = f"https://nyc-tlc.s3.amazonaws.com/trip+data/" + FHV_DATASET_FILE_TEMPLATE
 FHV_BIGQUERY_TABLE_NAME_TEMPLATE = "fhv_tripdata_{{ execution_date.strftime('%Y-%m') }}"
 FHV_GCS_PATH_TEMPLATE = "raw/fhv_tripdata/{{ execution_date.strftime('%Y') }}/" + FHV_DATASET_FILE_TEMPLATE
-
 
 download_upload_to_gcs(
     dag=fhv_data_dag,
