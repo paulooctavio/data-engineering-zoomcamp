@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+    - name: staging
+      database: dtc-de-352419
+      schema: trips_data_all
+
+      tables:
+          - name: yellow_tripdata_external_table
+          - name: fhv_tripdata_external_table

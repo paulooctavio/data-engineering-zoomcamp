@@ -14,3 +14,9 @@
 serving_dir
 *.csv
 .ipynb_checkpoints/
+
+# dbt
+target/
+dbt_modules/
+logs/
+dbt_packages/
