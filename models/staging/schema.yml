@@ -18,7 +18,7 @@ models:
         The records were collected and provided to the NYC Taxi and Limousine Commission (TLC) by
         technology service providers. 
       columns:
-          - name: tripid
+          - name: trip_id
             description: Primary key for this table, generated with a concatenation of vendorid+pickup_datetime
             tests:
                 - unique:
@@ -54,14 +54,14 @@ models:
                 because the vehicle did not have a connection to the server.
                 Y= store and forward trip
                 N= not a store and forward trip
-          - name: PULocationID
+          - name: pickup_locationid
             description: TLC Taxi Zone in which the taximeter was engaged
             tests:
               - relationships:
                   to: ref('taxi_zone_lookup')
                   field: locationid
                   severity: warn
-          - name: DOLocationID
+          - name: dropoff_locationid	
             description: TLC Taxi Zone in which the taximeter was disengaged
             tests:
               - relationships:
@@ -123,8 +123,6 @@ models:
         - name: DOlocationID
           description: TLC Taxi Zone in which the trip ended
         - name: SR_Flag
-          description:
-        - name: Affiliated_base_number
           description: >
               Indicates if the trip was a part of a shared ride chain offered by a
               High Volume FHV company (e.g. Uber Pool, Lyft Line). For shared
