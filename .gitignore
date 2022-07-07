@@ -12,7 +12,7 @@
 .history
 **/ny_taxi_postgres_data/
 serving_dir
-*.csv
+#*.csv
 .ipynb_checkpoints/
 
 # dbt
