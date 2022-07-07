@@ -3,6 +3,7 @@
 WITH yellow_data AS (
     SELECT
         *
+        ,'Yellow' AS service_type
     FROM {{ ref('stg_yellow_tripdata') }}
 ),
 
@@ -16,6 +17,7 @@ dim_zones AS (
 SELECT
     y.trip_id
     ,y.vendorid
+    ,y.service_type
     ,y.ratecodeid
     ,y.pickup_datetime
     ,y.dropoff_datetime
