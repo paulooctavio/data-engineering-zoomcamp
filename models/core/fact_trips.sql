@@ -9,23 +9,24 @@ WITH yellow_data AS (
 dim_zones AS (
     SELECT
         *
-    FROM {{ ref('dim_zones.sql') }}
+    FROM {{ ref('dim_zones') }}
+    WHERE borough != 'Unknown'
 )
 
 SELECT
-    ,y.trip_id
+    y.trip_id
     ,y.vendorid
     ,y.ratecodeid
     ,y.pickup_datetime
     ,y.dropoff_datetime
     ,y.pickup_locationid
-    ,pu.borough as pickup_zone
+    ,pu.borough as pickup_borough
     ,pu.zone as pickup_zone
-    ,pu.service_zone as pickup_zone
+    ,pu.service_zone as pickup_service_zone
     ,y.dropoff_locationid
-    ,do.borough as dropoff_zone
+    ,do.borough as dropoff_borough
     ,do.zone as dropoff_zone
-    ,do.service_zone as dropoff_zone
+    ,do.service_zone as dropoff_service_zone
     ,y.passenger_count
     ,y.trip_distance
     ,y.fare_amount
