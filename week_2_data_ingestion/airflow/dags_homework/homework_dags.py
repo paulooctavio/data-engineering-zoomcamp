@@ -1,7 +1,9 @@
 import logging
 import os
+import pyarrow as pa
 import pyarrow.csv as pv
 import pyarrow.parquet as pq
+import pandas as pd
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -26,6 +28,12 @@ def format_to_parquet(src_file, parquet_file):
     table = pv.read_csv(src_file)
     pq.write_table(table, parquet_file)
     print(f"{src_file} sucessfully formated to {parquet_file}")
+
+
+def set_table_schema(src_file, table_schema):
+    df = pd.read_parquet(src_file)
+    df.to_parquet(src_file, schema=table_schema)
+    print(f"Successfully defined table schema")
 
 
 def upload_to_gcs(ti, bucket, object_name, local_file):
@@ -58,6 +66,7 @@ def download_upload_to_gcs(
     dataset_url_template,
     bigquery_table_name_template,
     gcs_path_template,
+    table_schema=None,
     parquetize=False
 ):
     with dag:
@@ -77,7 +86,7 @@ def download_upload_to_gcs(
 
         branch = BranchPythonOperator(
             task_id="branch",
-            python_callable=lambda parquetize: "format_to_parquet_task" if parquetize == True else "local_to_gcs_task",
+            python_callable=lambda parquetize: "format_to_parquet_task" if parquetize == True else "set_table_schema_task",
             op_kwargs={"parquetize": parquetize},
             dag=dag)
 
@@ -87,6 +96,15 @@ def download_upload_to_gcs(
             op_kwargs={
                 "src_file": f"{PATH_TO_LOCAL_HOME}/{dataset_file_template}",
                 "parquet_file": parquet_file
+            },
+        )
+
+        set_table_schema_task = PythonOperator(
+            task_id="set_table_schema_task",
+            python_callable=set_table_schema,
+            op_kwargs={
+                "src_file": f"{PATH_TO_LOCAL_HOME}/{parquet_file}",
+                "table_schema": table_schema
             },
         )
 
@@ -110,7 +128,7 @@ def download_upload_to_gcs(
         )
 
         download_dataset_task >> branch >> format_to_parquet_task >> local_to_gcs_task >> delete_downloaded_files_task
-        download_dataset_task >> branch >> local_to_gcs_task >> delete_downloaded_files_task
+        download_dataset_task >> branch >> set_table_schema_task >> local_to_gcs_task >> delete_downloaded_files_task
 
 
 yellow_tripdata_dag = DAG(
@@ -122,11 +140,20 @@ yellow_tripdata_dag = DAG(
     tags=['dtc-de'],
 )
 
+green_tripdata_dag = DAG(
+    dag_id="green_tripdata_dag",
+    schedule_interval="@monthly",
+    start_date=datetime(2019, 1, 1),
+    end_date=datetime(2020, 12, 1),
+    max_active_runs=3,
+    tags=['dtc-de'],
+)
+
 fhv_data_dag = DAG(
     dag_id="fhv_data_dag",
     schedule_interval="@monthly",
-    start_date=datetime(2019, 1, 1),
-    end_date=datetime(2019, 12, 1),
+    start_date=datetime(2021, 1, 1),
+    end_date=datetime(2021, 12, 1),
     max_active_runs=3,
     tags=['dtc-de'],
 )
@@ -142,26 +169,101 @@ YELLOW_TRIPDATA_DATASET_FILE_TEMPLATE = "yellow_tripdata_{{ execution_date.strft
 YELLOW_TRIPDATA_DATASET_URL_TEMPLATE = f"https://s3.amazonaws.com/nyc-tlc/trip+data/" + YELLOW_TRIPDATA_DATASET_FILE_TEMPLATE
 YELLOW_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE = "yellow_taxi_{{ execution_date.strftime('%Y-%m') }}"
 YELLOW_TRIPDATA_GCS_PATH_TEMPLATE = "raw/yellow_tripdata/{{ execution_date.strftime('%Y') }}/" + YELLOW_TRIPDATA_DATASET_FILE_TEMPLATE
+YELLOW_TABLE_SCHEMA = pa.schema(
+    [
+        ('VendorID',pa.int64()),
+        ('lpep_pickup_datetime',pa.timestamp('s')),
+        ('lpep_dropoff_datetime',pa.timestamp('s')),
+        ('store_and_fwd_flag',pa.string()),
+        ('RatecodeID',pa.int64()),
+        ('PULocationID',pa.int64()),
+        ('DOLocationID',pa.int64()),
+        ('passenger_count',pa.int64()),
+        ('trip_distance',pa.float64()),
+        ('fare_amount',pa.float64()),
+        ('extra',pa.float64()),
+        ('mta_tax',pa.float64()),
+        ('tip_amount',pa.float64()),
+        ('tolls_amount',pa.float64()),
+        ('ehail_fee',pa.float64()),
+        ('improvement_surcharge',pa.float64()),
+        ('total_amount',pa.float64()),
+        ('payment_type',pa.int64()),
+        ('trip_type',pa.int64()),
+        ('congestion_surcharge',pa.float64()),
+    ]
+)
 
 download_upload_to_gcs(
     dag=yellow_tripdata_dag,
     dataset_file_template=YELLOW_TRIPDATA_DATASET_FILE_TEMPLATE,
     dataset_url_template=YELLOW_TRIPDATA_DATASET_URL_TEMPLATE,
     bigquery_table_name_template=YELLOW_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE,
-    gcs_path_template=YELLOW_TRIPDATA_GCS_PATH_TEMPLATE
+    gcs_path_template=YELLOW_TRIPDATA_GCS_PATH_TEMPLATE,
+    table_schema=YELLOW_TABLE_SCHEMA
+)
+
+GREEN_TRIPDATA_DATASET_FILE_TEMPLATE = "green_tripdata_{{ execution_date.strftime('%Y-%m') }}.parquet"
+GREEN_TRIPDATA_DATASET_URL_TEMPLATE = f"https://d37ci6vzurychx.cloudfront.net/trip-data/" + GREEN_TRIPDATA_DATASET_FILE_TEMPLATE
+GREEN_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE = "green_taxi_{{ execution_date.strftime('%Y-%m') }}"
+GREEN_TRIPDATA_GCS_PATH_TEMPLATE = "raw/green_tripdata/{{ execution_date.strftime('%Y') }}/" + GREEN_TRIPDATA_DATASET_FILE_TEMPLATE
+GREEN_TABLE_SCHEMA = pa.schema(
+    [
+        ('VendorID',pa.int64()),
+        ('lpep_pickup_datetime',pa.timestamp('s')),
+        ('lpep_dropoff_datetime',pa.timestamp('s')),
+        ('store_and_fwd_flag',pa.string()),
+        ('RatecodeID',pa.int64()),
+        ('PULocationID',pa.int64()),
+        ('DOLocationID',pa.int64()),
+        ('passenger_count',pa.int64()),
+        ('trip_distance',pa.float64()),
+        ('fare_amount',pa.float64()),
+        ('extra',pa.float64()),
+        ('mta_tax',pa.float64()),
+        ('tip_amount',pa.float64()),
+        ('tolls_amount',pa.float64()),
+        ('ehail_fee',pa.float64()),
+        ('improvement_surcharge',pa.float64()),
+        ('total_amount',pa.float64()),
+        ('payment_type',pa.int64()),
+        ('trip_type',pa.int64()),
+        ('congestion_surcharge',pa.float64()),
+    ]
+)
+
+download_upload_to_gcs(
+    dag=green_tripdata_dag,
+    dataset_file_template=GREEN_TRIPDATA_DATASET_FILE_TEMPLATE,
+    dataset_url_template=GREEN_TRIPDATA_DATASET_URL_TEMPLATE,
+    bigquery_table_name_template=GREEN_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE,
+    gcs_path_template=GREEN_TRIPDATA_GCS_PATH_TEMPLATE,
+    table_schema=GREEN_TABLE_SCHEMA
 )
 
 FHV_DATASET_FILE_TEMPLATE = "fhv_tripdata_{{ execution_date.strftime('%Y-%m') }}.parquet"
-FHV_DATASET_URL_TEMPLATE = f"https://nyc-tlc.s3.amazonaws.com/trip+data/" + FHV_DATASET_FILE_TEMPLATE
+FHV_DATASET_URL_TEMPLATE = f"https://raw.githubusercontent.com/alexeygrigorev/datasets/master/nyc-tlc/fhv/" + FHV_DATASET_FILE_TEMPLATE
 FHV_BIGQUERY_TABLE_NAME_TEMPLATE = "fhv_tripdata_{{ execution_date.strftime('%Y-%m') }}"
 FHV_GCS_PATH_TEMPLATE = "raw/fhv_tripdata/{{ execution_date.strftime('%Y') }}/" + FHV_DATASET_FILE_TEMPLATE
+FHV_TABLE_SCHEMA = pa.schema(
+    [
+        ('dispatching_base_num',pa.string()),
+        ('pickup_datetime',pa.timestamp('s')),
+        ('dropOff_datetime',pa.timestamp('s')),
+        ('PUlocationID',pa.int64()),
+        ('DOlocationID',pa.int64()),
+        ('SR_Flag',pa.int64()),
+        ('Affiliated_base_number',pa.string()),
+    ]
+)
 
 download_upload_to_gcs(
     dag=fhv_data_dag,
     dataset_file_template=FHV_DATASET_FILE_TEMPLATE,
     dataset_url_template=FHV_DATASET_URL_TEMPLATE,
     bigquery_table_name_template=FHV_BIGQUERY_TABLE_NAME_TEMPLATE,
-    gcs_path_template=FHV_GCS_PATH_TEMPLATE
+    gcs_path_template=FHV_GCS_PATH_TEMPLATE,
+    table_schema=FHV_TABLE_SCHEMA
 )
 
 ZONES_DATASET_FILE_TEMPLATE = "taxi_zone_lookup.csv"
