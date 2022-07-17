@@ -140,6 +140,15 @@ yellow_tripdata_dag = DAG(
     tags=['dtc-de'],
 )
 
+green_tripdata_dag = DAG(
+    dag_id="green_tripdata_dag",
+    schedule_interval="@monthly",
+    start_date=datetime(2019, 1, 1),
+    end_date=datetime(2020, 12, 1),
+    max_active_runs=3,
+    tags=['dtc-de'],
+)
+
 fhv_data_dag = DAG(
     dag_id="fhv_data_dag",
     schedule_interval="@monthly",
@@ -162,7 +171,7 @@ YELLOW_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE = "yellow_taxi_{{ execution_date.st
 YELLOW_TRIPDATA_GCS_PATH_TEMPLATE = "raw/yellow_tripdata/{{ execution_date.strftime('%Y') }}/" + YELLOW_TRIPDATA_DATASET_FILE_TEMPLATE
 YELLOW_TABLE_SCHEMA = pa.schema(
     [
-        ('VendorID',pa.string()),
+        ('VendorID',pa.int64()),
         ('lpep_pickup_datetime',pa.timestamp('s')),
         ('lpep_dropoff_datetime',pa.timestamp('s')),
         ('store_and_fwd_flag',pa.string()),
@@ -185,7 +194,6 @@ YELLOW_TABLE_SCHEMA = pa.schema(
     ]
 )
 
-
 download_upload_to_gcs(
     dag=yellow_tripdata_dag,
     dataset_file_template=YELLOW_TRIPDATA_DATASET_FILE_TEMPLATE,
@@ -193,6 +201,44 @@ download_upload_to_gcs(
     bigquery_table_name_template=YELLOW_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE,
     gcs_path_template=YELLOW_TRIPDATA_GCS_PATH_TEMPLATE,
     table_schema=YELLOW_TABLE_SCHEMA
+)
+
+GREEN_TRIPDATA_DATASET_FILE_TEMPLATE = "green_tripdata_{{ execution_date.strftime('%Y-%m') }}.parquet"
+GREEN_TRIPDATA_DATASET_URL_TEMPLATE = f"https://d37ci6vzurychx.cloudfront.net/trip-data/" + GREEN_TRIPDATA_DATASET_FILE_TEMPLATE
+GREEN_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE = "green_taxi_{{ execution_date.strftime('%Y-%m') }}"
+GREEN_TRIPDATA_GCS_PATH_TEMPLATE = "raw/green_tripdata/{{ execution_date.strftime('%Y') }}/" + GREEN_TRIPDATA_DATASET_FILE_TEMPLATE
+GREEN_TABLE_SCHEMA = pa.schema(
+    [
+        ('VendorID',pa.int64()),
+        ('lpep_pickup_datetime',pa.timestamp('s')),
+        ('lpep_dropoff_datetime',pa.timestamp('s')),
+        ('store_and_fwd_flag',pa.string()),
+        ('RatecodeID',pa.int64()),
+        ('PULocationID',pa.int64()),
+        ('DOLocationID',pa.int64()),
+        ('passenger_count',pa.int64()),
+        ('trip_distance',pa.float64()),
+        ('fare_amount',pa.float64()),
+        ('extra',pa.float64()),
+        ('mta_tax',pa.float64()),
+        ('tip_amount',pa.float64()),
+        ('tolls_amount',pa.float64()),
+        ('ehail_fee',pa.float64()),
+        ('improvement_surcharge',pa.float64()),
+        ('total_amount',pa.float64()),
+        ('payment_type',pa.int64()),
+        ('trip_type',pa.int64()),
+        ('congestion_surcharge',pa.float64()),
+    ]
+)
+
+download_upload_to_gcs(
+    dag=green_tripdata_dag,
+    dataset_file_template=GREEN_TRIPDATA_DATASET_FILE_TEMPLATE,
+    dataset_url_template=GREEN_TRIPDATA_DATASET_URL_TEMPLATE,
+    bigquery_table_name_template=GREEN_TRIPDATA_BIGQUERY_TABLE_NAME_TEMPLATE,
+    gcs_path_template=GREEN_TRIPDATA_GCS_PATH_TEMPLATE,
+    table_schema=GREEN_TABLE_SCHEMA
 )
 
 FHV_DATASET_FILE_TEMPLATE = "fhv_tripdata_{{ execution_date.strftime('%Y-%m') }}.parquet"
