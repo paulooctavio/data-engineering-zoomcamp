@@ -116,7 +116,7 @@ models:
         The records were collected and provided to the NYC Taxi and Limousine Commission (TLC) by
         technology service providers. 
       columns:
-          - name: tripid
+          - name: trip_id
             description: Primary key for this table, generated with a concatenation of vendorid+pickup_datetime
             tests:
                 - unique:
