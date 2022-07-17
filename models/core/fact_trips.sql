@@ -7,6 +7,19 @@ WITH yellow_data AS (
     FROM {{ ref('stg_yellow_tripdata') }}
 ),
 
+green_data AS (
+    SELECT
+        *
+        ,'Green' AS service_type
+    FROM {{ ref('stg_green_tripdata') }}
+),
+
+trips_unioned as (
+    SELECT * FROM green_data
+    UNION ALL
+    SELECT * FROM yellow_data
+), 
+
 dim_zones AS (
     SELECT
         *
@@ -15,34 +28,34 @@ dim_zones AS (
 )
 
 SELECT
-    y.trip_id
-    ,y.vendorid
-    ,y.service_type
-    ,y.ratecodeid
-    ,y.pickup_datetime
-    ,y.dropoff_datetime
-    ,y.pickup_locationid
+    t.trip_id
+    ,t.vendorid
+    ,t.service_type
+    ,t.ratecodeid
+    ,t.pickup_datetime
+    ,t.dropoff_datetime
+    ,t.pickup_locationid
     ,pu.borough as pickup_borough
     ,pu.zone as pickup_zone
     ,pu.service_zone as pickup_service_zone
-    ,y.dropoff_locationid
+    ,t.dropoff_locationid
     ,do.borough as dropoff_borough
     ,do.zone as dropoff_zone
     ,do.service_zone as dropoff_service_zone
-    ,y.passenger_count
-    ,y.trip_distance
-    ,y.fare_amount
-    ,y.extra
-    ,y.mta_tax
-    ,y.tip_amount
-    ,y.tolls_amount
-    ,y.improvement_surcharge
-    ,y.total_amount
-    ,y.payment_type
-    ,y.payment_type_description
-    ,y.congestion_surcharge
-FROM yellow_data y
+    ,t.passenger_count
+    ,t.trip_distance
+    ,t.fare_amount
+    ,t.extra
+    ,t.mta_tax
+    ,t.tip_amount
+    ,t.tolls_amount
+    ,t.improvement_surcharge
+    ,t.total_amount
+    ,t.payment_type
+    ,t.payment_type_description
+    ,t.congestion_surcharge
+FROM trips_unioned t
 INNER JOIN dim_zones pu
-ON y.pickup_locationid = pu.locationid
+ON t.pickup_locationid = pu.locationid
 INNER JOIN dim_zones do
-ON y.dropoff_locationid = do.locationid
+ON t.dropoff_locationid = do.locationid
