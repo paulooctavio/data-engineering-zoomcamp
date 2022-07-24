@@ -1,6 +1,6 @@
 .DS_Store
 .idea
-*.parquet
+*.parquet*
 *.tfstate
 *.tfstate.*
 **.terraform
@@ -14,3 +14,6 @@
 serving_dir
 *.csv
 .ipynb_checkpoints/
+*.crc
+*_SUCCESS
+*.jar
