@@ -14,7 +14,7 @@ BUCKET = os.environ.get("GCP_GCS_BUCKET")
 path_to_local_home = os.environ.get("AIRFLOW_HOME", "/opt/airflow/")
 BIGQUERY_DATASET = os.environ.get("BIGQUERY_DATASET", 'trips_data_all')
 
-DATASETS = {'yellow': 'tpep_pickup_datetime', 'fhv':'pickup_datetime'}
+DATASETS = {'yellow': 'tpep_pickup_datetime', 'green': 'tpep_pickup_datetime','fhv':'pickup_datetime'}
 
 default_args = {
     "owner": "airflow",
@@ -59,13 +59,12 @@ with DAG(
             },
         )
 
-        except_clause = "EXCEPT (airport_fee)" if dataset == "yellow" else "EXCEPT (PUlocationID, DOlocationID, SR_Flag)"  
         CREATE_PARTITION_TABLE_QUERY = f"""
         CREATE OR REPLACE TABLE `{BIGQUERY_DATASET}.{dataset}_tripdata_partitioned`
         PARTITION BY
             DATE({partition_col}) AS
         SELECT
-            * {except_clause}
+            *
         FROM
             `{BIGQUERY_DATASET}.{dataset}_tripdata_external_table`;
         """
