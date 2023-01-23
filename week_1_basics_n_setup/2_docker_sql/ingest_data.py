@@ -18,13 +18,19 @@ def main(paramas):
     db = paramas.db
     table_name = paramas.table_name
     url = paramas.url
-    file_name = 'output.parquet'
+
+    # the backup files are gzipped, and it's important to keep the correct extension
+    # for pandas to be able to open the file
+    if url.endswith('.csv.gz'):
+        file_name = 'output.csv.gz'
+    else:
+        file_name = 'output.csv'
 
     os.system(f'wget {url} -O {file_name}')
 
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
 
-    df = pd.read_parquet(file_name)
+    df = pd.read_csv(file_name)
     print(df.head())
 
     df.head(0).to_sql(name=table_name, con=engine, if_exists='replace')
