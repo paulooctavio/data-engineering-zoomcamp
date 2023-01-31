@@ -22,3 +22,4 @@ serving_dir
 data/
 *_password.txt
 *-deployment.yaml
+*.vscode
