@@ -18,3 +18,7 @@ serving_dir
 *.crc
 *_SUCCESS
 *.jar
+*.gz
+data/
+*_password.txt
+*-deployment.yaml
