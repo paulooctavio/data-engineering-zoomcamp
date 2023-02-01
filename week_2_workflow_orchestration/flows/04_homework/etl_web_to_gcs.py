@@ -4,7 +4,7 @@ from prefect import flow, task
 from prefect_gcp.cloud_storage import GcsBucket
 
 
-@task(retries=3)
+@task(retries=3, log_prints=True)
 def fetch(dataset_url: str) -> pd.DataFrame:
     """Read taxi data from wen into pandas DataFrame"""
 
@@ -23,10 +23,11 @@ def clean(df=pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-@task()
+@task(log_prints=True)
 def write_local(df: pd.DataFrame, color: str, dataset_file: str) -> Path:
     """Write DataFrame out locally as a parquet file"""
-    path = Path(f"data/{color}/{dataset_file}.parquet")
+    path = Path(f"../../data/{color}/{dataset_file}.parquet")
+    print(f"path: {path}")
     df.to_parquet(path, compression="gzip")
     return path
 
@@ -39,7 +40,7 @@ def write_gcs(path: Path) -> None:
     return
 
 
-@flow()
+@flow(log_prints=True)
 def etl_web_to_gcs() -> None:
     """The main ETL function"""
     color = "green"
