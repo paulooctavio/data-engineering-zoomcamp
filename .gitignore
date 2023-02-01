@@ -1,6 +1,6 @@
 .DS_Store
 .idea
-*.parquet*
+.parquet
 *.tfstate
 *.tfstate.*
 **.terraform
