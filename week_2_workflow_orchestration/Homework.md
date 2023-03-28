@@ -14,9 +14,7 @@ How many rows does that dataset have?
 * 299,234
 * 822,132
 
-**Answer:** 447770
-
-**Code:**
+**Answer:** 447,770
 
 ## Question 2. Scheduling with Cron
 
@@ -52,8 +50,6 @@ Make sure you have the parquet data files for Yellow taxi data for Feb. 2019 and
 
 **Answer:** 14,851,920
 
-**Code:**
-
 ## Question 4. Github Storage Block
 
 Using the `web_to_gcs` script from the videos as a guide, you want to store your flow code in a GitHub repository for collaboration with your team. Prefect can look in the GitHub repo to find your flow code and read it. Create a GitHub storage block from the UI or in Python code and use that in your Deployment instead of storing your flow code locally or baking your flow code into a Docker image. 
@@ -69,9 +65,7 @@ How many rows were processed by the script?
 - 88,605
 - 190,225
 
-**Answer:**
-
-**Code:**
+**Answer:** 88,605
 
 ## Question 5. Email or Slack notifications
 
@@ -101,9 +95,7 @@ How many rows were processed by the script?
 - `728,390`
 - `514,392`
 
-**Answer:**
-
-**Code:**
+**Answer:** 514,392
 
 ## Question 6. Secrets
 
@@ -114,18 +106,4 @@ Prefect Secret blocks provide secure, encrypted storage in the database and obfu
 - 8
 - 10
 
-**Answer:**
-
-**Code:**
-
-## Submitting the solutions
-
-* Form for submitting: TODO
-* You can submit your homework multiple times. In this case, only the last submission will be used. 
-
-Deadline: 6 February (Monday), 22:00 CET
-
-
-## Solution
-
-We will publish the solution here
+**Answer:** 8
